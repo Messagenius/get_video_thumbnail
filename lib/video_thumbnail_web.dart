@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math' as math;
 import 'package:web/web.dart' as web;
+import 'dart:js_interop';
 
 import 'package:cross_file/cross_file.dart';
 import 'package:flutter/services.dart';
@@ -110,17 +111,17 @@ class VideoThumbnailWeb extends VideoThumbnailPlatform {
     final fetchVideo = headers != null && headers.isNotEmpty;
 
     // Handle loadedmetadata event
-    video.addEventListener('loadedmetadata', (web.Event event) {
+    video.addEventListener('loadedmetadata', ((web.Event event) {
       video.currentTime = timeSec;
 
       if (fetchVideo) {
         final url = video.src;
         web.URL.revokeObjectURL(url);
       }
-    } as web.EventListener);
+    }).toJS);
 
     // Handle seeked event
-    video.addEventListener('seeked', (web.Event event) async {
+    video.addEventListener('seeked', ((web.Event event) {
       if (!completer.isCompleted) {
         final canvas = web.document.createElement('canvas') as web.HTMLCanvasElement;
         final ctx = canvas.getContext('2d') as web.CanvasRenderingContext2D;
@@ -160,8 +161,18 @@ class VideoThumbnailWeb extends VideoThumbnailPlatform {
           final qualityValue = quality / 100;
           
           // Convert canvas to blob
-          final blob = await _canvasToBlob(canvas, format, qualityValue);
-          completer.complete(blob);
+          _canvasToBlob(canvas, format, qualityValue).then((blob) {
+            completer.complete(blob);
+          }).catchError((e, s) {
+            completer.completeError(
+              PlatformException(
+                code: 'CANVAS_EXPORT_ERROR',
+                details: e,
+                stacktrace: s.toString(),
+              ),
+              s,
+            );
+          });
         } catch (e, s) {
           completer.completeError(
             PlatformException(
@@ -173,10 +184,10 @@ class VideoThumbnailWeb extends VideoThumbnailPlatform {
           );
         }
       }
-    } as web.EventListener);
+    }).toJS);
 
     // Handle error event
-    video.addEventListener('error', (web.Event event) {
+    video.addEventListener('error', ((web.Event event) {
       if (!completer.isCompleted) {
         final error = video.error;
         if (error != null) {
@@ -199,13 +210,13 @@ class VideoThumbnailWeb extends VideoThumbnailPlatform {
           );
         }
       }
-    } as web.EventListener);
+    }).toJS);
 
     if (fetchVideo) {
       try {
         final blob = await _fetchVideoByHeaders(
           videoSrc: videoSrc,
-          headers: headers!,
+          headers: headers,
         );
 
         final url = web.URL.createObjectURL(blob);
@@ -224,7 +235,7 @@ class VideoThumbnailWeb extends VideoThumbnailPlatform {
   Future<web.Blob> _canvasToBlob(web.HTMLCanvasElement canvas, String format, double quality) {
     final completer = Completer<web.Blob>();
     
-    canvas.toBlob((web.Blob? blob) {
+    canvas.toBlob(((web.Blob? blob) {
       if (blob != null) {
         completer.complete(blob);
       } else {
@@ -235,7 +246,7 @@ class VideoThumbnailWeb extends VideoThumbnailPlatform {
           ),
         );
       }
-    } as web.BlobCallback, format, quality as dynamic);
+    }).toJS, format, quality.toJS);
     
     return completer.future;
   }
@@ -259,7 +270,7 @@ class VideoThumbnailWeb extends VideoThumbnailPlatform {
       xhr.setRequestHeader(key, value);
     });
 
-    xhr.addEventListener('load', (web.Event event) {
+    xhr.addEventListener('load', ((web.Event event) {
       if (xhr.status >= 200 && xhr.status < 300) {
         completer.complete(xhr.response as web.Blob);
       } else {
@@ -270,16 +281,16 @@ class VideoThumbnailWeb extends VideoThumbnailPlatform {
           ),
         );
       }
-    } as web.EventListener);
+    }).toJS);
 
-    xhr.addEventListener('error', (web.Event event) {
+    xhr.addEventListener('error', ((web.Event event) {
       completer.completeError(
         PlatformException(
           code: 'VIDEO_FETCH_ERROR',
           message: 'Failed to fetch video',
         ),
       );
-    } as web.EventListener);
+    }).toJS);
 
     xhr.send();
 
