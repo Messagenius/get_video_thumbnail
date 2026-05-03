@@ -129,6 +129,17 @@ class VideoThumbnailWeb extends VideoThumbnailPlatform {
         final videoWidth = video.videoWidth;
         final videoHeight = video.videoHeight;
 
+        if (videoWidth == 0 || videoHeight == 0) {
+          completer.completeError(
+            PlatformException(
+              code: 'VIDEO_DIMENSIONS_ERROR',
+              message: 'Could not determine video dimensions '
+                  '(${videoWidth}x$videoHeight)',
+            ),
+          );
+          return;
+        }
+
         if (maxWidth == 0 && maxHeight == 0) {
           canvas.width = videoWidth;
           canvas.height = videoHeight;
