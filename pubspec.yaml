@@ -1,6 +1,6 @@
 name: get_thumbnail_video
 description: "A flutter plugin for creating a thumbnail from a local video file or from a video URL."
-version: 0.7.3
+version: 0.8.0
 homepage:
 repository: https://github.com/Alberto-Monteiro/video_thumbnail
 
@@ -31,6 +31,10 @@ flutter:
         pluginClass: VideoThumbnailPlugin
       ios:
         pluginClass: VideoThumbnailPlugin
+      macos:
+        pluginClass: VideoThumbnailPlugin
+      windows:
+        pluginClass: GetThumbnailVideoPluginCApi
       web:
         pluginClass: VideoThumbnailWeb
         fileName: video_thumbnail_web.dart
