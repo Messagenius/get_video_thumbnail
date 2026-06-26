@@ -1,3 +1,9 @@
+## 0.8.0
+* Added desktop support for thumbnail generation:
+  - macOS via AVFoundation (`AVAssetImageGenerator`) + AppKit JPEG/PNG encoding.
+  - Windows via Media Foundation (`IMFSourceReader`) frame decode + WIC JPEG/PNG encoding.
+* WEBP is not supported on the desktop platforms (JPEG and PNG only).
+
 ## 0.7.3
 * Relaxed the environment constraints for the plugin to support flutter v3.22.0
 

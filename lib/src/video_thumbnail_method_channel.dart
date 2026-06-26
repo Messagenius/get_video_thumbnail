@@ -55,7 +55,13 @@ class MethodChannelVideoThumbnail extends VideoThumbnailPlatform {
       'timeMs': timeMs,
       'quality': quality,
     };
-    final bytes = await methodChannel.invokeMethod('data', reqMap);
-    return bytes!;
+    final bytes = await methodChannel.invokeMethod<Uint8List>('data', reqMap);
+    if (bytes == null || bytes.isEmpty) {
+      throw PlatformException(
+        code: 'THUMBNAIL_ERROR',
+        message: 'Failed to generate thumbnail for video: $video at ${timeMs}ms',
+      );
+    }
+    return bytes;
   }
 }
